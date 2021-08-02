@@ -17,28 +17,35 @@ export type Config = {
   priority?: number,
 };
 
+export type UrlConfig = {
+  loc: string,
+  lastmod: string,
+  changefreq: string,
+  priority: number,
+};
+
 export default class Generator {
   _baseUrl: string;
   _baseComponent: MixedElement;
-  _config: ?Config;
+  _configs: ?Array<Config>;
 
-  constructor(baseUrl: string, baseComponent: MixedElement, config?: Config) {
+  constructor(baseUrl: string, baseComponent: MixedElement, ...configs: Array<Config>) {
     if (!React.isValidElement(baseComponent)) {
       throw 'Invalid component. Try `Router()` instead of `Router`';
     }
     this._baseUrl = baseUrl;
     this._baseComponent = baseComponent;
-    this._config = config;
+    this._configs = configs;
   }
 
   getXML(): string {
     const paths = componentToPaths(this._baseComponent, this._baseUrl);
-    return pathsToXml(this._baseUrl, paths, this._config);
+    return pathsToXml(this._baseUrl, paths, this._configs);
   }
 
   save(path: string) {
     const paths = componentToPaths(this._baseComponent, this._baseUrl);
-    const xml = pathsToXml(this._baseUrl, paths, this._config);
+    const xml = pathsToXml(this._baseUrl, paths, this._configs);
     fs.writeFileSync(path, xml);
   }
 }
@@ -76,13 +83,8 @@ function componentToPaths(
 function pathsToXml(
   baseUrl: string,
   paths: Array<URL>,
-  config: ?Config
+  configs: ?Array<Config>
 ): string {
-  const { lastmod, changefreq, priority } = {
-    ...DEFAULT_CONFIG,
-    ...config,
-  };
-
   const options = { compact: true, spaces: 4 };
   const map = {
     _declaration: {
@@ -93,15 +95,45 @@ function pathsToXml(
     },
     urlset: {
       url: paths.map((path) => {
-        return {
-          loc: path.href,
-          lastmod,
-          changefreq,
-          priority,
-        };
+        return getUrlConfig(baseUrl, path, configs);
       }),
       _attributes: { xmlns: 'http://www.sitemaps.org/schemas/sitemap/0.9' },
     },
   };
   return convertor.js2xml(map, options);
+}
+
+function getUrlConfig(baseUrl: string, path: string, configs: ?Array<Config>): UrlConfig {
+  const loc = baseUrl + path;
+  let defaultConfig;
+
+  if(!configs) {
+    return {
+      loc,
+      ...DEFAULT_CONFIG
+    };
+  }
+
+  const config = configs.find(config => {
+    const {paths} = config;
+
+    if(!paths) {
+      defaultConfig = config;
+      return false;
+    }
+
+    return paths.some(p => p.test(path));
+  });
+
+  if(!config) {
+    return {
+      loc,
+      ...defaultConfig || DEFAULT_CONFIG
+    }
+  }
+
+  return {
+    loc,
+    ...config
+  };
 }
