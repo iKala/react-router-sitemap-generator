@@ -95,7 +95,7 @@ function pathsToXml(
     },
     urlset: {
       url: paths.map((path) => {
-        return getUrlConfig(baseUrl, path, configs);
+        return getUrlConfig(baseUrl, path.pathname, configs);
       }),
       _attributes: { xmlns: 'http://www.sitemaps.org/schemas/sitemap/0.9' },
     },

@@ -119,7 +119,7 @@ function pathsToXml(baseUrl, paths, configs) {
     },
     urlset: {
       url: paths.map(function (path) {
-        return getUrlConfig(baseUrl, path, configs);
+        return getUrlConfig(baseUrl, path.pathname, configs);
       }),
       _attributes: {
         xmlns: 'http://www.sitemaps.org/schemas/sitemap/0.9'
