@@ -132,10 +132,10 @@ function getUrlConfig(baseUrl: string, path: string, configs: ?Array<Config>): U
     }
   }
 
-  delete config.paths;
-
   return {
     loc,
-    ...config
+    lastmod: config.lastmod,
+    changefreq: config.changefreq,
+    priority: config.priority
   };
 }
