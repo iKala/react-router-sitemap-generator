@@ -132,6 +132,8 @@ function getUrlConfig(baseUrl: string, path: string, configs: ?Array<Config>): U
     }
   }
 
+  delete config.paths;
+
   return {
     loc,
     ...config

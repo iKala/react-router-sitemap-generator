@@ -158,6 +158,7 @@ function getUrlConfig(baseUrl, path, configs) {
     }, defaultConfig || DEFAULT_CONFIG);
   }
 
+  delete config.paths;
   return _objectSpread({
     loc: loc
   }, config);
